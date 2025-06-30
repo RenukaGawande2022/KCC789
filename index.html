@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>KCC ISS & PRI Portal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+    <div class="container mt-4">
+        <h2 class="mb-4">KCC Transactions Entry</h2>
+
+        <form id="kccForm" class="mb-4">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Account Number</label>
+                    <input type="text" class="form-control" id="accountNo" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Farmer Name</label>
+                    <input type="text" class="form-control" id="farmerName" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Withdrawal Date</label>
+                    <input type="date" class="form-control" id="withdrawalDate" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Withdrawal Amount</label>
+                    <input type="number" class="form-control" id="withdrawalAmount" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Repayment Date</label>
+                    <input type="date" class="form-control" id="repaymentDate" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Repayment Amount</label>
+                    <input type="number" class="form-control" id="repaymentAmount" required>
+                </div>
+                <div class="col-12 text-end">
+                    <button type="submit" class="btn btn-success">Add Entry</button>
+                </div>
+            </div>
+        </form>
+
+        <div class="mb-5">
+            <h5>Export Options</h5>
+            <button id="exportKCC" class="btn btn-outline-success me-2">Export KCC Excel</button>
+            <button id="exportPRI" class="btn btn-outline-primary">Export PRI Excel</button>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-white py-4 mt-auto">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-white text-decoration-none">Home</a></li>
+                        <li><a href="#" class="text-white text-decoration-none">About</a></li>
+                        <li><a href="#" class="text-white text-decoration-none">FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h5>Contact Support</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-phone-alt me-2"></i> 1800-123-4567</li>
+                        <li><i class="fas fa-envelope me-2"></i> support@kccportal.gov.in</li>
+                        <li><i class="fas fa-map-marker-alt me-2"></i> Ministry of Agriculture, New Delhi</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="bg-light">
+            <div class="text-center">
+                <p class="mb-0">© 2023 KCC ISS & PRI Portal. All rights reserved.</p>
+                <p class="small mb-0">Designed for Government of India - Agriculture Department</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 end-0 m-3`;
+            alertDiv.style.zIndex = '1050';
+            alertDiv.role = 'alert';
+            alertDiv.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            document.body.appendChild(alertDiv);
+            setTimeout(() => alertDiv.remove(), 4000);
+        }
+
+        document.getElementById('kccForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const data = {
+                accountNo: document.getElementById('accountNo').value,
+                name: document.getElementById('farmerName').value,
+                withdrawalDate: document.getElementById('withdrawalDate').value,
+                withdrawalAmount: parseFloat(document.getElementById('withdrawalAmount').value),
+                repaymentDate: document.getElementById('repaymentDate').value,
+                repaymentAmount: parseFloat(document.getElementById('repaymentAmount').value)
+            };
+
+            data.isAmount = +(data.withdrawalAmount * 0.015).toFixed(2);
+            data.priAmount = +(data.repaymentAmount * 0.03).toFixed(2);
+
+            await fetch('/submit-kcc', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            showAlert(`KCC Entry Saved. IS: ₹${data.isAmount}, PRI: ₹${data.priAmount}`, 'success');
+            this.reset();
+        });
+
+        document.getElementById('exportKCC').addEventListener('click', () => {
+            window.location.href = '/export-kcc';
+        });
+
+        document.getElementById('exportPRI').addEventListener('click', () => {
+            window.location.href = '/export-pri';
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
